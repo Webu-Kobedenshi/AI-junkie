@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: 開発環境のチェック
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@v3
+        with:
+          version: 2026.9.11
+      - name: 依存関係を取得
+        run: mise run install
+      - name: 整形・静的解析・型・テスト・ビルドを確認
+        run: mise run check
