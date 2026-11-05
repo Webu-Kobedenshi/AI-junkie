@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: system-ui, "Noto Sans JP", sans-serif;
+  --color-accent: #2643a2;
+}
+
+@layer base {
+  :root {
+    color: #1e293b;
+    background: #f5f7fa;
+    line-height: 1.7;
+    font-synthesis: none;
+  }
+
+  body {
+    padding: 24px;
+  }
+}
