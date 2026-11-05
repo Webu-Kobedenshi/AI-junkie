@@ -1,0 +1,52 @@
+[tools]
+node = "24.22.1"
+go = "1.27.3"
+pnpm = "12.14.0"
+
+[env]
+_.file = { path = ".env", optional = true }
+
+[tasks.install]
+description = "フロントとAPIの依存関係を取得する"
+run = ["pnpm --dir frontend install --frozen-lockfile", "cd backend && go mod download"]
+
+[tasks."db:up"]
+description = "開発用PostgreSQLを起動する"
+run = "docker compose up -d --wait db"
+
+[tasks."db:down"]
+description = "開発用PostgreSQLを停止する（記録は保持）"
+run = "docker compose stop db"
+
+[tasks."dev:frontend"]
+description = "フロントの開発サーバーを起動する"
+dir = "frontend"
+run = "pnpm dev"
+
+[tasks."dev:backend"]
+description = "Go APIを起動する"
+dir = "backend"
+run = "go run ./cmd/server"
+
+[tasks.dev]
+description = "フロントとAPIを起動する（先にdb:upを実行）"
+depends = ["dev:frontend", "dev:backend"]
+
+[tasks."check:frontend"]
+description = "フロントの整形・静的解析・型・ビルドを確認する"
+run = ["pnpm --dir frontend format:check", "pnpm --dir frontend lint", "pnpm --dir frontend build"]
+
+[tasks."check:backend"]
+description = "Goの整形・静的解析・テスト・ビルドを確認する"
+dir = "backend"
+run = ["test -z \"$(gofmt -l .)\"", "go vet ./...", "go test -race ./...", "go build ./..."]
+
+[tasks.check]
+description = "CIと同じチェックを実行する"
+depends = ["check:frontend", "check:backend"]
+
+[tasks."test:db"]
+description = "開発用DBへの接続と障害時の応答を検証する"
+dir = "backend"
+env = { TEST_DATABASE = "1" }
+run = "go test -race ./internal/server -run TestDatabaseReadiness -count=1"
